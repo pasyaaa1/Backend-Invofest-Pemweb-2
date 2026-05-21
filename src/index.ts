@@ -1,10 +1,9 @@
 import express from "express";
 import cors from "cors";
 
-import eventRoutes from "./routes/eventRoutes";
-import categoryRoutes from "./routes/categoryRoutes";
-import pembicaraRoutes from "./routes/speakerRoutes";
-import speakerRoutes from "./routes/speakerRoutes";
+import eventRoutes from "./routes/eventRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
+import speakerRoutes from "./routes/speakerRoutes.js";
 
 const app = express();
 const port = 3000;

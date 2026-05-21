@@ -6,7 +6,7 @@ createEvent,
 getEventById, 
 updateEvent, 
 deleteEvent 
-} from "../controllers/eventController"; 
+} from "../controllers/eventController.js"; 
 
 const router = express.Router(); 
 router.get("/", getEvents); //Menampilkan data event
