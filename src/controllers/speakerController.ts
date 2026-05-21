@@ -1,11 +1,17 @@
 import { Request, Response } from "express";
-import type { Speaker } from "../types/speaker";
+import type { Speaker } from "../types/speaker.js";
+import { prisma } from "../lib/db.js";
 
 let speakers: Speaker[] = [];
 
-const getSpeakers = (req: Request, res: Response) => {
-    res.json(speakers);
-};
+const getSpeakers = async (req: Request, res: Response) => {
+    const AllSpeakers = await prisma.speaker.findMany({
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+    res.json(AllSpeakers);
+    };
 
 const createSpeaker = (req: Request, res: Response) => {
     const { nama, role } = req.body;
