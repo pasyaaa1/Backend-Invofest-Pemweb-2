@@ -14,7 +14,9 @@ export const getEvents = async (_req: Request, res: Response) => {
 };
 
 export const createEvent = async (req: Request, res: Response) => {
-  const { name, tanggal, category, description, location } = req.body;
+  const { name, tanggal, category, description, location, speaker, pembicara } =
+    req.body;
+  const speakerId = speaker ?? pembicara;
 
   if (!name || !tanggal || !category) {
     return res.status(400).json({
@@ -27,6 +29,7 @@ export const createEvent = async (req: Request, res: Response) => {
       data: {
         name: String(name),
         categoryId: String(category),
+        ...(speakerId && { speakerId: String(speakerId) }),
         location: location ? String(location) : "Universitas Harkat Negeri",
         dateEvent: new Date(tanggal),
         description: description ? String(description) : "",
@@ -56,7 +59,9 @@ export const getEventById = async (req: Request, res: Response) => {
 
 export const updateEvent = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
-  const { name, tanggal, category, description, location } = req.body;
+  const { name, tanggal, category, description, location, speaker, pembicara } =
+    req.body;
+  const speakerId = speaker ?? pembicara;
 
   try {
     const event = await prisma.event.update({
@@ -64,6 +69,9 @@ export const updateEvent = async (req: Request, res: Response) => {
       data: {
         ...(name !== undefined && { name: String(name) }),
         ...(category !== undefined && { categoryId: String(category) }),
+        ...(speakerId !== undefined && {
+          speakerId: speakerId ? String(speakerId) : null,
+        }),
         ...(location !== undefined && { location: String(location) }),
         ...(tanggal !== undefined && { dateEvent: new Date(tanggal) }),
         ...(description !== undefined && { description: String(description) }),
