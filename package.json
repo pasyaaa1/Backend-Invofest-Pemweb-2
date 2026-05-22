@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "prisma generate && npx tsc",
-    "start": "prisma migrate deploy && node dist/index.js",
+    "build": "node scripts/prisma-generate.mjs && npx tsc",
+    "start": "node scripts/start.mjs",
     "db:fix-sequences": "node fix-sequences.mjs"
   },
   "keywords": [],
