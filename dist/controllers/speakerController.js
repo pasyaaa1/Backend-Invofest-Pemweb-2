@@ -1,44 +1,80 @@
 import { prisma } from "../lib/db.js";
-let speakers = [];
-const getSpeakers = async (req, res) => {
-    const AllSpeakers = await prisma.speaker.findMany({
-        orderBy: {
-            createdAt: "desc",
-        },
-    });
-    res.json(AllSpeakers);
-};
-const createSpeaker = (req, res) => {
-    const { nama, role } = req.body;
-    if (!nama || !role) {
-        return res.status(500).json({
-            error: "Nama dan role wajib diisi",
+export const getSpeakers = async (_req, res) => {
+    try {
+        const allSpeakers = await prisma.speaker.findMany({
+            orderBy: { createdAt: "desc" },
         });
+        res.json(allSpeakers);
     }
-    const newSpeaker = {
-        id: Date.now(),
-        nama: nama,
-        role: String(role)
-    };
-    speakers.push(newSpeaker);
-    res.status(202).json(newSpeaker);
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Gagal memuat pembicara" });
+    }
 };
-const updateSpeaker = (req, res) => {
+export const getSpeakerById = async (req, res) => {
     const id = Number(req.params.id);
-    const speaker = speakers.find((s) => s.id === id);
-    if (!speaker) {
-        return res.status(500).json({
-            error: "Pembicara tidak ditemukan",
+    try {
+        const speaker = await prisma.speaker.findUnique({ where: { id } });
+        if (!speaker) {
+            return res.status(404).json({ error: "Pembicara tidak ditemukan" });
+        }
+        res.json(speaker);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Gagal memuat pembicara" });
+    }
+};
+export const createSpeaker = async (req, res) => {
+    const { nama, name, role, image } = req.body;
+    const speakerName = name ?? nama;
+    if (!speakerName || !role) {
+        return res.status(400).json({ error: "Nama dan role wajib diisi" });
+    }
+    try {
+        const newSpeaker = await prisma.speaker.create({
+            data: {
+                name: String(speakerName),
+                role: String(role),
+                image: image ? String(image) : "",
+            },
         });
+        res.status(201).json(newSpeaker);
     }
-    speaker.nama = req.body.nama ?? speaker.nama;
-    speaker.role = req.body.role ?? speaker.role;
-    res.json(speaker);
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Gagal menyimpan pembicara" });
+    }
 };
-const deleteSpeaker = (req, res) => {
+export const updateSpeaker = async (req, res) => {
     const id = Number(req.params.id);
-    speakers = speakers.filter((s) => s.id !== id);
-    res.json({ message: "Speaker berhasil dihapus" });
+    const { nama, name, role, image } = req.body;
+    const speakerName = name ?? nama;
+    try {
+        const speaker = await prisma.speaker.update({
+            where: { id },
+            data: {
+                ...(speakerName !== undefined && { name: String(speakerName) }),
+                ...(role !== undefined && { role: String(role) }),
+                ...(image !== undefined && { image: String(image) }),
+            },
+        });
+        res.json(speaker);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(404).json({ error: "Pembicara tidak ditemukan" });
+    }
 };
-export { getSpeakers, createSpeaker, updateSpeaker, deleteSpeaker };
+export const deleteSpeaker = async (req, res) => {
+    const id = Number(req.params.id);
+    try {
+        await prisma.speaker.delete({ where: { id } });
+        res.json({ message: "Speaker berhasil dihapus" });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(404).json({ error: "Pembicara tidak ditemukan" });
+    }
+};
 //# sourceMappingURL=speakerController.js.map

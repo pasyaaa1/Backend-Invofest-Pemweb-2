@@ -1,62 +1,84 @@
 import { prisma } from "../lib/db.js";
-let events = [];
-//menampilkan data event
-export const getEvents = async (req, res) => {
-    const AllEvents = await prisma.event.findMany({
-        orderBy: {
-            createdAt: "desc",
-        },
-    });
-    res.json(AllEvents);
+export const getEvents = async (_req, res) => {
+    try {
+        const allEvents = await prisma.event.findMany({
+            orderBy: { createdAt: "desc" },
+        });
+        res.json(allEvents);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Gagal memuat data event" });
+    }
 };
-//membuat data event baru
-export const createEvent = (req, res) => {
-    const { name, tanggal, category, description } = req.body;
+export const createEvent = async (req, res) => {
+    const { name, tanggal, category, description, location } = req.body;
     if (!name || !tanggal || !category) {
-        return res.status(500).json({
+        return res.status(400).json({
             error: "Nama, tanggal, dan kategori wajib diisi",
         });
     }
-    //mapping data
-    const newEvent = {
-        id: Date.now(),
-        name: name,
-        tanggal: tanggal,
-        category: category,
-        description: description
-    };
-    //simpan data
-    events.push(newEvent);
-    res.status(201).json(newEvent);
-};
-// GET Event by ID
-export const getEventById = (req, res) => {
-    const id = Number(req.params.id);
-    const event = events.find((e) => e.id === id);
-    if (!event) {
-        return res.status(500).json({
-            Massage: "Event tidak ditemukan",
+    try {
+        const newEvent = await prisma.event.create({
+            data: {
+                name: String(name),
+                categoryId: String(category),
+                location: location ? String(location) : "Universitas Harkat Negeri",
+                dateEvent: new Date(tanggal),
+                description: description ? String(description) : "",
+            },
         });
+        res.status(201).json(newEvent);
     }
-    res.json(event);
-};
-// UPDATE Event
-export const updateEvent = (req, res) => {
-    const id = Number(req.params.id);
-    const event = events.find((e) => e.id === id);
-    if (!event) {
-        return res.status(404).json({ message: "Event tidak ditemukan" });
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Gagal menyimpan event" });
     }
-    event.name = req.body.name ?? event.name;
-    event.tanggal = req.body.tanggal ?? event.tanggal;
-    event.category = req.body.category ?? event.category;
-    event.description = req.body.description ?? event.description;
-    res.json(event);
 };
-// DELETE Event
-export const deleteEvent = (req, res) => {
+export const getEventById = async (req, res) => {
     const id = Number(req.params.id);
-    events = events.filter((e) => e.id !== id);
-    res.json({ message: "Event berhasil dihapus" });
+    try {
+        const event = await prisma.event.findUnique({ where: { id } });
+        if (!event) {
+            return res.status(404).json({ message: "Event tidak ditemukan" });
+        }
+        res.json(event);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Gagal memuat event" });
+    }
+};
+export const updateEvent = async (req, res) => {
+    const id = Number(req.params.id);
+    const { name, tanggal, category, description, location } = req.body;
+    try {
+        const event = await prisma.event.update({
+            where: { id },
+            data: {
+                ...(name !== undefined && { name: String(name) }),
+                ...(category !== undefined && { categoryId: String(category) }),
+                ...(location !== undefined && { location: String(location) }),
+                ...(tanggal !== undefined && { dateEvent: new Date(tanggal) }),
+                ...(description !== undefined && { description: String(description) }),
+            },
+        });
+        res.json(event);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(404).json({ message: "Event tidak ditemukan" });
+    }
+};
+export const deleteEvent = async (req, res) => {
+    const id = Number(req.params.id);
+    try {
+        await prisma.event.delete({ where: { id } });
+        res.json({ message: "Event berhasil dihapus" });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(404).json({ message: "Event tidak ditemukan" });
+    }
 };
 //# sourceMappingURL=eventController.js.map
