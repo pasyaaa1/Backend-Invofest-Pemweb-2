@@ -47,7 +47,9 @@ export const updateCategory = async (req, res) => {
     try {
         const category = await prisma.category.update({
             where: { id },
-            data: { name: name ? String(name) : undefined },
+            data: {
+                ...(name !== undefined && { name: String(name) }),
+            },
         });
         res.json(category);
     }
